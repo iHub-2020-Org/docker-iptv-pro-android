@@ -1,0 +1,44 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+    
+    - name: Build with Gradle
+      run: |
+        cd app
+        chmod +x gradlew
+        ./gradlew assembleRelease --no-daemon
+    
+    - name: Check APK Size
+      run: |
+        APK_SIZE=$(stat -c%s app/app/build/outputs/apk/release/app-release.apk)
+        echo "APK Size: $APK_SIZE bytes"
+        if [ $APK_SIZE -gt 5242880 ]; then
+          echo "⚠️ APK size exceeds 5MB!"
+          exit 1
+        fi
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: iptv-pro-android
+        path: app/app/build/outputs/apk/release/app-release.apk

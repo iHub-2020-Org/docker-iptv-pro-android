@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">IPTV Pro</string>
+    <string name="channel_list_title">频道列表</string>
+    <string name="scan_config_title">扫描配置</string>
+    <string name="no_channels_hint">暂无频道，按菜单键配置扫描</string>
+    <string name="scanning">正在扫描...</string>
+    <string name="scan_complete">扫描完成</string>
+    <string name="play_error">播放失败</string>
+    <string name="safe_mode">安全模式</string>
+</resources>

@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  android-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iptv-pro-builder
+    volumes:
+      - /opt/iptv-pro-builder/app:/app
+      - /opt/iptv-pro-builder/output:/output
+      - gradle-cache:/root/.gradle
+    environment:
+      - ANDROID_SDK_ROOT=/opt/android-sdk
+    working_dir: /app
+    command: >
+      sh -c "
+        cd /app/app &&
+        chmod +x gradlew &&
+        ./gradlew assembleRelease --no-daemon 2>&1 &&
+        cp build/outputs/apk/release/app-release.apk /output/iptv-pro-android.apk &&
+        echo 'APK built successfully at /output/iptv-pro-android.apk'
+      "
+    restart: "no"
+
+volumes:
+  gradle-cache:
