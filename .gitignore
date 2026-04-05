@@ -1,1 +1,32 @@
+# Local environment config (contains secrets)
 .env
+local.properties
+
+# Android build outputs
+*.apk
+*.aab
+*.dex
+
+# Gradle build cache (NOT the wrapper)
+.gradle/
+build/
+app/build/
+app/app/build/
+app/.gradle/
+
+# Keep gradle wrapper files (needed for CI)
+!app/gradlew
+!app/gradlew.bat
+!app/gradle/wrapper/
+!app/gradle/wrapper/gradle-wrapper.jar
+!app/gradle/wrapper/gradle-wrapper.properties
+
+# IDE files
+.idea/
+*.iml
+*.iws
+.DS_Store
+
+# Keystore files (NEVER commit)
+*.jks
+*.keystore

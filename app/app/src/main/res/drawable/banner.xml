@@ -4,17 +4,32 @@
     android:height="180dp"
     android:viewportWidth="320"
     android:viewportHeight="180">
+    <!-- Background -->
     <path
         android:fillColor="#0D1117"
         android:pathData="M0,0h320v180h-320z"/>
+    <!-- Blue left accent bar -->
     <path
         android:fillColor="#3B82F6"
-        android:pathData="M140,60 L180,90 L140,120z"/>
-    <text
-        android:x="195"
-        android:y="105"
-        android:text="IPTV Pro"
-        android:textColor="#E6EDF3"
-        android:textSize="36sp"
-        android:fontFamily="sans-serif-medium"/>
+        android:pathData="M0,0h6v180H0z"/>
+    <!-- Play button triangle -->
+    <path
+        android:fillColor="#3B82F6"
+        android:pathData="M120,60 L170,90 L120,120 Z"/>
+    <!-- Decorative lines representing "IPTV Pro" text area -->
+    <path
+        android:fillColor="#3B82F6"
+        android:strokeWidth="3"
+        android:strokeColor="#3B82F6"
+        android:pathData="M185,75 L300,75"/>
+    <path
+        android:fillColor="#8B949E"
+        android:strokeWidth="2"
+        android:strokeColor="#8B949E"
+        android:pathData="M185,95 L260,95"/>
+    <path
+        android:fillColor="#8B949E"
+        android:strokeWidth="2"
+        android:strokeColor="#8B949E"
+        android:pathData="M185,112 L240,112"/>
 </vector>

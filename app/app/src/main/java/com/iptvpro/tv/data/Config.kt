@@ -1,7 +1,10 @@
 package com.iptvpro.tv.data
 
+import com.iptvpro.tv.BuildConfig
+
 object Config {
-    const val BASE_URL = "http://192.168.9.158:5950"
+    // Injected at build time via IPTV_BASE_URL env var or local.properties
+    val BASE_URL: String = BuildConfig.BASE_URL
     
     object Endpoints {
         const val HEALTH = "/api/health"
@@ -15,7 +18,7 @@ object Config {
         const val PROXY_STREAM = "/api/proxy/stream"
     }
     
-    // Default templates
+    // Default scan templates
     val DEFAULT_TEMPLATES = listOf(
         "http://ott.mobaibox.com/PLTV/4/224/322122{id}/index.m3u8",
         "http://ott.mobaibox.com/PLTV/4/224/322123{id}/index.m3u8",
