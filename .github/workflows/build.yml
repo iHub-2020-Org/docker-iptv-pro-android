@@ -54,10 +54,12 @@ jobs:
             echo "task=assembleRelease" >> $GITHUB_OUTPUT
             echo "apk_path=app/app/build/outputs/apk/release/app-release.apk" >> $GITHUB_OUTPUT
             echo "artifact_name=iptv-pro-release" >> $GITHUB_OUTPUT
+            echo "apk_filename=iptv-pro-android.apk" >> $GITHUB_OUTPUT
           else
             echo "task=assembleDebug" >> $GITHUB_OUTPUT
             echo "apk_path=app/app/build/outputs/apk/debug/app-debug.apk" >> $GITHUB_OUTPUT
             echo "artifact_name=iptv-pro-debug" >> $GITHUB_OUTPUT
+            echo "apk_filename=iptv-pro-android-debug.apk" >> $GITHUB_OUTPUT
           fi
 
       - name: Build APK
@@ -65,13 +67,9 @@ jobs:
         env:
           IPTV_BASE_URL: ${{ secrets.IPTV_BASE_URL }}
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-        run: |
-          ./gradlew ${{ steps.build_variant.outputs.task }} \
-            --no-daemon \
-            --stacktrace \
-            --info 2>&1 | tail -100
+        run: ./gradlew ${{ steps.build_variant.outputs.task }} --no-daemon --stacktrace
 
-      - name: Verify APK and report size
+      - name: Verify APK
         run: |
           APK_PATH="${{ steps.build_variant.outputs.apk_path }}"
           if [ ! -f "$APK_PATH" ]; then
@@ -79,14 +77,47 @@ jobs:
             exit 1
           fi
           APK_SIZE=$(stat -c%s "$APK_PATH")
-          APK_SIZE_KB=$(( APK_SIZE / 1024 ))
-          echo "✅ APK built successfully"
-          echo "📦 APK Size: ${APK_SIZE_KB} KB"
+          echo "✅ APK built: $(( APK_SIZE / 1024 )) KB"
 
-      - name: Upload APK artifact
+      - name: Upload APK artifact (GitHub)
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build_variant.outputs.artifact_name }}
           path: ${{ steps.build_variant.outputs.apk_path }}
           retention-days: 30
           if-no-files-found: error
+
+      # ── Deploy APK back to local server ──────────────────────────────────
+      - name: Deploy APK to pve-vm-media
+        # Only deploy on push to main (not PRs), and only release builds
+        if: github.event_name != 'pull_request' && (github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '')
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'reyan' }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/opt/iptv-pro-builder/output' }}
+        run: |
+          # Skip if SSH key not configured
+          if [ -z "$SSH_PRIVATE_KEY" ] || [ -z "$DEPLOY_HOST" ]; then
+            echo "⚠️  Deploy secrets not configured (DEPLOY_SSH_KEY / DEPLOY_HOST)"
+            echo "   APK available as GitHub artifact above."
+            exit 0
+          fi
+
+          # Setup SSH
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+          # SCP the APK
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            "${{ steps.build_variant.outputs.apk_path }}" \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/${{ steps.build_variant.outputs.apk_filename }}"
+
+          echo "✅ APK deployed to ${DEPLOY_HOST}:${DEPLOY_PATH}/${{ steps.build_variant.outputs.apk_filename }}"
+
+          # Touch a timestamp file
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "echo '$(date -u +%Y-%m-%dT%H:%M:%SZ) commit=${{ github.sha }}' > ${DEPLOY_PATH}/last_deploy.txt"
