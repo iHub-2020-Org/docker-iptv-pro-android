@@ -6,7 +6,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.Surface
-import com.iptvpro.tv.BuildConfig
 import com.iptvpro.tv.data.Config
 import com.iptvpro.tv.data.model.Channel
 

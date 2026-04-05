@@ -261,13 +261,13 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
             else if (channels.isNotEmpty()) showInfoBar(channels[currentChannelIndex])
             true
         }
-        else -> super.onKeyDown(keyCode, event)
+        else -> super.onKeyDown(keyCode, null)
     }
 
     private fun handleListKeys(keyCode: Int): Boolean = when (keyCode) {
         KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_DPAD_LEFT -> { switchMode(MODE_PLAY); true }
         KeyEvent.KEYCODE_MENU -> { switchMode(MODE_SCAN); true }
-        else -> super.onKeyDown(keyCode, event)
+        else -> super.onKeyDown(keyCode, null)
     }
 
     private fun handleScanKeys(keyCode: Int): Boolean = when (keyCode) {
@@ -275,7 +275,7 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
         KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_CENTER -> {
             if (isScanning) stopScan() else startScan(); true
         }
-        else -> super.onKeyDown(keyCode, event)
+        else -> super.onKeyDown(keyCode, null)
     }
 
     // ─── Volume ─────────────────────────────────────────────────────────────
