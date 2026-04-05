@@ -4,52 +4,143 @@
     android:layout_height="match_parent"
     android:background="@color/tv_background">
 
-    <!-- Play Mode -->
-    <LinearLayout
+    <!-- ===== PLAY MODE ===== -->
+    <FrameLayout
         android:id="@+id/playLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
         <SurfaceView
             android:id="@+id/surfaceView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-    </LinearLayout>
+        <!-- Buffering overlay -->
+        <LinearLayout
+            android:id="@+id/bufferingLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp"
+            android:background="#CC000000"
+            android:visibility="gone">
 
-    <!-- Channel List Mode -->
+            <TextView
+                android:id="@+id/tvBuffering"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/buffering"
+                android:textColor="@color/tv_text_primary"
+                android:textSize="20sp" />
+
+        </LinearLayout>
+
+        <!-- Info bar (bottom overlay) -->
+        <LinearLayout
+            android:id="@+id/infoBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="horizontal"
+            android:background="#CC000000"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="12dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvChannelIndex"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/tv_accent"
+                android:textSize="18sp"
+                android:layout_marginEnd="12dp"
+                android:text="1" />
+
+            <TextView
+                android:id="@+id/tvChannelName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/tv_text_primary"
+                android:textSize="20sp"
+                android:singleLine="true"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tvChannelRes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/tv_accent"
+                android:textSize="16sp"
+                android:layout_marginStart="16dp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- ===== CHANNEL LIST MODE ===== -->
     <LinearLayout
         android:id="@+id/listLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="@color/tv_surface"
-        android:padding="24dp"
         android:visibility="gone">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/channel_list_title"
-            android:textColor="@color/tv_text_primary"
-            android:textSize="36sp"
-            android:layout_marginBottom="24dp" />
+            android:orientation="horizontal"
+            android:padding="20dp"
+            android:background="@color/tv_background">
 
-        <GridView
-            android:id="@+id/gridChannels"
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/channel_list_title"
+                android:textColor="@color/tv_text_primary"
+                android:textSize="28sp" />
+
+            <TextView
+                android:id="@+id/tvChannelCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/tv_text_secondary"
+                android:textSize="20sp"
+                android:text="" />
+
+        </LinearLayout>
+
+        <!-- Channel list -->
+        <ListView
+            android:id="@+id/listChannels"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:numColumns="3"
-            android:horizontalSpacing="16dp"
-            android:verticalSpacing="16dp"
             android:focusable="true"
-            android:focusableInTouchMode="true" />
+            android:focusableInTouchMode="true"
+            android:divider="@color/tv_divider"
+            android:dividerHeight="1dp"
+            android:scrollbarStyle="outsideOverlay"
+            android:listSelector="@color/tv_list_selector" />
+
+        <!-- Hint -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/list_hint"
+            android:textColor="@color/tv_text_secondary"
+            android:textSize="15sp"
+            android:padding="12dp"
+            android:background="@color/tv_background" />
 
     </LinearLayout>
 
-    <!-- Scan Config Mode -->
+    <!-- ===== SCAN MODE ===== -->
     <LinearLayout
         android:id="@+id/scanLayout"
         android:layout_width="match_parent"
@@ -65,43 +156,62 @@
             android:layout_height="wrap_content"
             android:text="@string/scan_config_title"
             android:textColor="@color/tv_text_primary"
-            android:textSize="36sp"
-            android:layout_marginBottom="48dp" />
+            android:textSize="32sp"
+            android:layout_marginBottom="32dp" />
+
+        <TextView
+            android:id="@+id/tvScanStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/scan_ready"
+            android:textColor="@color/tv_text_secondary"
+            android:textSize="20sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tvScanFound"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="@color/tv_accent"
+            android:textSize="18sp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="按确定键开始扫描"
+            android:text="@string/scan_hint"
             android:textColor="@color/tv_text_secondary"
-            android:textSize="24sp" />
+            android:textSize="15sp"
+            android:layout_marginTop="48dp" />
 
     </LinearLayout>
 
-    <!-- Info Bar -->
+    <!-- ===== NO-CHANNELS OVERLAY ===== -->
     <LinearLayout
-        android:id="@+id/infoBar"
-        android:layout_width="match_parent"
+        android:id="@+id/noChannelsLayout"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:orientation="horizontal"
-        android:background="#80000000"
-        android:padding="16dp"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
         android:visibility="gone">
 
         <TextView
-            android:id="@+id/tvChannelName"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@color/tv_text_primary"
-            android:textSize="24sp" />
-
-        <TextView
-            android:id="@+id/tvChannelRes"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="@string/no_channels_hint"
+            android:textColor="@color/tv_text_secondary"
+            android:textSize="22sp"
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/server_hint"
             android:textColor="@color/tv_accent"
-            android:textSize="20sp" />
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_marginTop="12dp" />
 
     </LinearLayout>
 

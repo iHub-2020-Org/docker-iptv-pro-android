@@ -2,10 +2,18 @@
 <resources>
     <string name="app_name">IPTV Pro</string>
     <string name="channel_list_title">频道列表</string>
-    <string name="scan_config_title">扫描配置</string>
-    <string name="no_channels_hint">暂无频道，按菜单键配置扫描</string>
-    <string name="scanning">正在扫描...</string>
+    <string name="scan_config_title">扫描频道</string>
+    <string name="scan_ready">按确定键开始扫描</string>
+    <string name="scan_hint">← → 切台  ↑ ↓ 音量  OK 频道列表  菜单 扫描</string>
+    <string name="list_hint">OK/确定 播放  ← 返回</string>
+    <string name="no_channels_hint">暂无频道</string>
+    <string name="server_hint">按菜单键→确定开始扫描</string>
+    <string name="buffering">缓冲中…</string>
+    <string name="scanning">正在扫描…</string>
     <string name="scan_complete">扫描完成</string>
-    <string name="play_error">播放失败</string>
-    <string name="safe_mode">安全模式</string>
+    <string name="play_error">播放失败，切换下一台</string>
+    <string name="safe_mode">安全模式启动</string>
+    <string name="channels_found">已找到 %d 个频道</string>
+    <string name="channel_index">%d / %d</string>
+    <string name="loading_channels">正在加载频道…</string>
 </resources>
