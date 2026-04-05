@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/tv_background"
+    android:padding="80dp"
+    android:gravity="center_vertical">
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/settings_title"
+        android:textColor="@color/tv_text_primary"
+        android:textSize="36sp"
+        android:layout_marginBottom="48dp" />
+
+    <!-- Current server label -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/settings_server_label"
+        android:textColor="@color/tv_text_secondary"
+        android:textSize="20sp"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Server IP input -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="24dp">
+
+        <!-- http:// prefix -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="http://"
+            android:textColor="@color/tv_text_secondary"
+            android:textSize="22sp"
+            android:gravity="center_vertical"
+            android:paddingEnd="4dp"
+            android:layout_gravity="center_vertical" />
+
+        <!-- IP / hostname -->
+        <EditText
+            android:id="@+id/etServerHost"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:hint="@string/settings_host_hint"
+            android:textColor="@color/tv_text_primary"
+            android:textColorHint="@color/tv_text_secondary"
+            android:textSize="22sp"
+            android:background="@drawable/input_background"
+            android:padding="12dp"
+            android:inputType="textUri"
+            android:imeOptions="actionNext"
+            android:singleLine="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
+        <!-- colon separator -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" : "
+            android:textColor="@color/tv_text_secondary"
+            android:textSize="22sp"
+            android:gravity="center_vertical"
+            android:layout_gravity="center_vertical" />
+
+        <!-- Port -->
+        <EditText
+            android:id="@+id/etServerPort"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/settings_port_hint"
+            android:textColor="@color/tv_text_primary"
+            android:textColorHint="@color/tv_text_secondary"
+            android:textSize="22sp"
+            android:background="@drawable/input_background"
+            android:padding="12dp"
+            android:inputType="number"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
+    </LinearLayout>
+
+    <!-- Constructed URL preview -->
+    <TextView
+        android:id="@+id/tvUrlPreview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/tv_accent"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Connection status -->
+    <TextView
+        android:id="@+id/tvConnStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:layout_marginBottom="48dp"
+        android:text="" />
+
+    <!-- Button row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start">
+
+        <!-- Test button -->
+        <TextView
+            android:id="@+id/btnTest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_test"
+            android:textColor="@color/tv_text_primary"
+            android:textSize="20sp"
+            android:background="@color/tv_surface"
+            android:padding="16dp"
+            android:layout_marginEnd="24dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:clickable="true" />
+
+        <!-- Save button -->
+        <TextView
+            android:id="@+id/btnSave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_save"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:background="@color/tv_accent"
+            android:padding="16dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:clickable="true" />
+
+    </LinearLayout>
+
+    <!-- Hint -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/settings_hint"
+        android:textColor="@color/tv_text_secondary"
+        android:textSize="15sp"
+        android:layout_marginTop="32dp" />
+
+</LinearLayout>

@@ -199,6 +199,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/tvNoChannelsTitle"
             android:text="@string/no_channels_hint"
             android:textColor="@color/tv_text_secondary"
             android:textSize="22sp"
@@ -207,6 +208,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/tvNoChannelsHint"
             android:text="@string/server_hint"
             android:textColor="@color/tv_accent"
             android:textSize="16sp"

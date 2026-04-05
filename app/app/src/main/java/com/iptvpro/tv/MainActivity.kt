@@ -1,18 +1,19 @@
 package com.iptvpro.tv
 
 import android.app.Activity
+import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.widget.FrameLayout
 import android.view.KeyEvent
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.TextView
@@ -36,6 +37,7 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
         const val MODE_LIST = 1
         const val MODE_SCAN = 2
         private const val INFO_BAR_TIMEOUT_MS = 4000L
+        private const val REQ_SETTINGS = 1001
     }
 
     private var currentMode = MODE_PLAY
@@ -58,6 +60,7 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
     private lateinit var tvChannelCount: TextView
     private lateinit var tvScanStatus: TextView
     private lateinit var tvScanFound: TextView
+    private lateinit var tvNoChannels: TextView
     private lateinit var listChannels: ListView
     private lateinit var channelAdapter: ArrayAdapter<String>
 
@@ -74,28 +77,34 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
         }
         setContentView(R.layout.activity_main)
         initViews()
-        loadChannels()
+
+        // ★ First-launch check: if server not configured, go to Settings immediately
+        if (!Config.isConfigured(this)) {
+            openSettings()
+        } else {
+            loadChannels()
+        }
     }
 
     private fun initViews() {
-        surfaceView     = findViewById(R.id.surfaceView)
-        playLayout      = findViewById(R.id.playLayout)
-        listLayout      = findViewById(R.id.listLayout)
-        scanLayout      = findViewById(R.id.scanLayout)
-        infoBar         = findViewById(R.id.infoBar)
-        bufferingLayout = findViewById(R.id.bufferingLayout)
-        noChannelsLayout= findViewById(R.id.noChannelsLayout)
-        tvChannelName   = findViewById(R.id.tvChannelName)
-        tvChannelRes    = findViewById(R.id.tvChannelRes)
-        tvChannelIndex  = findViewById(R.id.tvChannelIndex)
-        tvChannelCount  = findViewById(R.id.tvChannelCount)
-        tvScanStatus    = findViewById(R.id.tvScanStatus)
-        tvScanFound     = findViewById(R.id.tvScanFound)
-        listChannels    = findViewById(R.id.listChannels)
+        surfaceView      = findViewById(R.id.surfaceView)
+        playLayout       = findViewById(R.id.playLayout)
+        listLayout       = findViewById(R.id.listLayout)
+        scanLayout       = findViewById(R.id.scanLayout)
+        infoBar          = findViewById(R.id.infoBar)
+        bufferingLayout  = findViewById(R.id.bufferingLayout)
+        noChannelsLayout = findViewById(R.id.noChannelsLayout)
+        tvChannelName    = findViewById(R.id.tvChannelName)
+        tvChannelRes     = findViewById(R.id.tvChannelRes)
+        tvChannelIndex   = findViewById(R.id.tvChannelIndex)
+        tvChannelCount   = findViewById(R.id.tvChannelCount)
+        tvScanStatus     = findViewById(R.id.tvScanStatus)
+        tvScanFound      = findViewById(R.id.tvScanFound)
+        tvNoChannels     = findViewById(R.id.tvNoChannelsHint)
+        listChannels     = findViewById(R.id.listChannels)
 
         surfaceView.holder.addCallback(this)
 
-        // Channel list adapter — lightweight string list, no images
         channelAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, mutableListOf())
         listChannels.adapter = channelAdapter
         listChannels.setOnItemClickListener { _, _, position, _ ->
@@ -106,10 +115,26 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
         }
     }
 
-    // ─── Channel Loading ────────────────────────────────────────────────────
+    // ─── Settings ────────────────────────────────────────────────────────────
+
+    private fun openSettings() {
+        startActivityForResult(Intent(this, SettingsActivity::class.java), REQ_SETTINGS)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_SETTINGS) {
+            // Reload channels after server URL may have changed
+            channels.clear()
+            player?.stop(); player = null
+            loadChannels()
+            Toast.makeText(this, "服务器: ${Config.BASE_URL}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // ─── Channel Loading ─────────────────────────────────────────────────────
 
     private fun loadChannels() {
-        // Fast: load cache first
         val cached = PlayListCache.load(this)
         if (cached.isNotEmpty()) {
             channels.addAll(cached)
@@ -117,20 +142,17 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
                 .coerceIn(0, channels.size - 1)
             refreshChannelUI()
         }
-        // Background: check server for fresher results
         Thread { fetchFromServer() }.start()
     }
 
     private fun fetchFromServer() {
         try {
             val resp = ApiClient.getSync(Config.Endpoints.RESULTS) ?: return
-            val arr = JSONObject(resp).optJSONArray("results") ?: return
+            val arr  = JSONObject(resp).optJSONArray("results") ?: return
             if (arr.length() == 0 || arr.length() <= channels.size) return
-
             val fresh = (0 until arr.length()).map { Channel.fromJson(arr.getJSONObject(it)) }
             mainHandler.post {
-                channels.clear()
-                channels.addAll(fresh)
+                channels.clear(); channels.addAll(fresh)
                 PlayListCache.save(this, channels)
                 currentChannelIndex = currentChannelIndex.coerceIn(0, maxOf(0, channels.size - 1))
                 refreshChannelUI()
@@ -138,39 +160,41 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
             }
         } catch (e: Exception) {
             Log.w(TAG, "Server fetch: ${e.message}")
-            mainHandler.post { if (channels.isEmpty()) noChannelsLayout.visibility = View.VISIBLE }
+            mainHandler.post {
+                if (channels.isEmpty()) {
+                    tvNoChannels.text = getString(R.string.settings_not_configured)
+                        .takeIf { !Config.isConfigured(this) }
+                        ?: getString(R.string.server_hint)
+                    noChannelsLayout.visibility = View.VISIBLE
+                }
+            }
         }
     }
 
     private fun refreshChannelUI() {
         val names = channels.map { "${it.name}  ${it.resolution.takeIf { r -> r != "未知" } ?: ""}" }
-        channelAdapter.clear()
-        channelAdapter.addAll(names)
+        channelAdapter.clear(); channelAdapter.addAll(names)
         channelAdapter.notifyDataSetChanged()
         tvChannelCount.text = "${channels.size} 个频道"
         noChannelsLayout.visibility = if (channels.isEmpty()) View.VISIBLE else View.GONE
     }
 
-    // ─── Playback ───────────────────────────────────────────────────────────
+    // ─── Playback ────────────────────────────────────────────────────────────
 
     private fun playCurrentChannel() {
         val sfc = surface ?: return
         if (channels.isEmpty()) { noChannelsLayout.visibility = View.VISIBLE; return }
-
         noChannelsLayout.visibility = View.GONE
         player?.stop()
         bufferingLayout.visibility = View.VISIBLE
-
         val ch = channels[currentChannelIndex]
         player = SafeMediaPlayer(
-            surface  = sfc,
-            onError  = { mainHandler.post { onPlayError() } },
+            surface    = sfc,
+            onError    = { mainHandler.post { onPlayError() } },
             onPrepared = { mainHandler.post { bufferingLayout.visibility = View.GONE } },
-            onBuffering = { pct ->
-                mainHandler.post {
-                    bufferingLayout.visibility = if (pct < 95) View.VISIBLE else View.GONE
-                }
-            }
+            onBuffering = { pct -> mainHandler.post {
+                bufferingLayout.visibility = if (pct < 95) View.VISIBLE else View.GONE
+            }}
         )
         player!!.play(ch)
         showInfoBar(ch)
@@ -205,40 +229,35 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
         playCurrentChannel()
     }
 
-    // ─── Surface Callbacks ──────────────────────────────────────────────────
+    // ─── Surface ─────────────────────────────────────────────────────────────
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         surface = holder.surface
         if (channels.isNotEmpty()) playCurrentChannel()
     }
-
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
-
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         player?.stop(); player = null; surface = null
     }
 
-    // ─── Mode Switching ─────────────────────────────────────────────────────
+    // ─── Mode ────────────────────────────────────────────────────────────────
 
     private fun switchMode(mode: Int) {
         currentMode = mode
         playLayout.visibility  = if (mode == MODE_PLAY) View.VISIBLE else View.GONE
         listLayout.visibility  = if (mode == MODE_LIST) View.VISIBLE else View.GONE
         scanLayout.visibility  = if (mode == MODE_SCAN) View.VISIBLE else View.GONE
-
         when (mode) {
             MODE_LIST -> {
                 listChannels.requestFocus()
                 if (currentChannelIndex < channelAdapter.count)
                     listChannels.setSelection(currentChannelIndex)
             }
-            MODE_PLAY -> {
-                if (channels.isNotEmpty()) showInfoBar(channels[currentChannelIndex])
-            }
+            MODE_PLAY -> if (channels.isNotEmpty()) showInfoBar(channels[currentChannelIndex])
         }
     }
 
-    // ─── Key Handling ───────────────────────────────────────────────────────
+    // ─── Keys ────────────────────────────────────────────────────────────────
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean = when (currentMode) {
         MODE_PLAY -> handlePlayKeys(keyCode)
@@ -248,7 +267,7 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
     }
 
     private fun handlePlayKeys(keyCode: Int): Boolean = when (keyCode) {
-        KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_PAGE_UP   -> { playPrevious(); true }
+        KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_PAGE_UP    -> { playPrevious(); true }
         KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_PAGE_DOWN -> { playNext();     true }
         KeyEvent.KEYCODE_DPAD_UP   -> { adjustVolume(1);  true }
         KeyEvent.KEYCODE_DPAD_DOWN -> { adjustVolume(-1); true }
@@ -261,12 +280,15 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
             else if (channels.isNotEmpty()) showInfoBar(channels[currentChannelIndex])
             true
         }
+        // ★ Press 0 → open Settings from any mode
+        KeyEvent.KEYCODE_0 -> { openSettings(); true }
         else -> super.onKeyDown(keyCode, null)
     }
 
     private fun handleListKeys(keyCode: Int): Boolean = when (keyCode) {
         KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_DPAD_LEFT -> { switchMode(MODE_PLAY); true }
-        KeyEvent.KEYCODE_MENU -> { switchMode(MODE_SCAN); true }
+        KeyEvent.KEYCODE_MENU  -> { switchMode(MODE_SCAN); true }
+        KeyEvent.KEYCODE_0     -> { openSettings(); true }
         else -> super.onKeyDown(keyCode, null)
     }
 
@@ -275,10 +297,11 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
         KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_CENTER -> {
             if (isScanning) stopScan() else startScan(); true
         }
+        KeyEvent.KEYCODE_0 -> { openSettings(); true }
         else -> super.onKeyDown(keyCode, null)
     }
 
-    // ─── Volume ─────────────────────────────────────────────────────────────
+    // ─── Volume ──────────────────────────────────────────────────────────────
 
     private fun adjustVolume(delta: Int) {
         (getSystemService(AUDIO_SERVICE) as AudioManager).adjustStreamVolume(
@@ -288,33 +311,23 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
         )
     }
 
-    // ─── Scan ───────────────────────────────────────────────────────────────
+    // ─── Scan ────────────────────────────────────────────────────────────────
 
     private fun startScan() {
-        isScanning     = true
-        scanFoundCount = 0
+        isScanning = true; scanFoundCount = 0
         tvScanStatus.text = getString(R.string.scanning)
         tvScanFound.text  = ""
-        channels.clear()
-        refreshChannelUI()
-
-        val config = ScanConfig(
-            template = Config.DEFAULT_TEMPLATES.first(),
-            variable = "id",
-            range    = "0000-0100",
-            threads  = 30,
-            timeout  = 8
-        )
+        channels.clear(); refreshChannelUI()
+        val config = ScanConfig(Config.DEFAULT_TEMPLATES.first(), "id", "0000-0100", 30, 8)
         ApiClient.postAsync(Config.Endpoints.SCAN_EXECUTE, config.toJson().toString()) { resp ->
             if (resp != null) connectScanSse()
-            else { isScanning = false; tvScanStatus.text = "连接服务器失败" }
+            else { isScanning = false; tvScanStatus.text = "连接服务器失败 — 按 0 检查设置" }
         }
     }
 
     private fun stopScan() {
         ApiClient.postAsync(Config.Endpoints.SCAN_STOP, "{}") {}
-        sseClient?.disconnect()
-        isScanning = false
+        sseClient?.disconnect(); isScanning = false
         tvScanStatus.text = getString(R.string.scan_ready)
     }
 
@@ -322,18 +335,12 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
         sseClient?.disconnect()
         sseClient = SseClient { event, data ->
             when (event) {
-                "channel_found" -> {
-                    scanFoundCount++
-                    val ch = Channel.fromJson(data)
-                    mainHandler.post {
-                        channels.add(ch)
-                        refreshChannelUI()
-                        tvScanFound.text = getString(R.string.channels_found, scanFoundCount)
-                    }
+                "channel_found" -> { scanFoundCount++; val ch = Channel.fromJson(data)
+                    mainHandler.post { channels.add(ch); refreshChannelUI()
+                        tvScanFound.text = getString(R.string.channels_found, scanFoundCount) }
                 }
                 "scan_complete" -> mainHandler.post {
-                    isScanning = false
-                    tvScanStatus.text = getString(R.string.scan_complete)
+                    isScanning = false; tvScanStatus.text = getString(R.string.scan_complete)
                     PlayListCache.save(this, channels)
                     if (channels.isNotEmpty()) mainHandler.postDelayed({
                         switchMode(MODE_PLAY); currentChannelIndex = 0; playCurrentChannel()
@@ -345,23 +352,15 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
         sseClient?.connect(Config.Endpoints.SCAN_STREAM)
     }
 
-    // ─── Lifecycle ──────────────────────────────────────────────────────────
+    // ─── Lifecycle ───────────────────────────────────────────────────────────
 
     override fun onPause() {
-        super.onPause()
-        player?.pause()
+        super.onPause(); player?.pause()
         mainHandler.removeCallbacks(infoBarHideRunnable)
     }
-
-    override fun onResume() {
-        super.onResume()
-        player?.resume()
-    }
-
+    override fun onResume() { super.onResume(); player?.resume() }
     override fun onDestroy() {
-        super.onDestroy()
-        sseClient?.disconnect()
-        player?.stop()
+        super.onDestroy(); sseClient?.disconnect(); player?.stop()
         mainHandler.removeCallbacksAndMessages(null)
         surfaceView.holder.removeCallback(this)
     }

@@ -1,17 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">IPTV Pro</string>
+    <!-- Play mode -->
     <string name="channel_list_title">频道列表</string>
     <string name="scan_config_title">扫描频道</string>
     <string name="scan_ready">按确定键开始扫描</string>
-    <string name="scan_hint">← → 切台  ↑ ↓ 音量  OK 频道列表  菜单 扫描</string>
-    <string name="list_hint">OK/确定 播放  ← 返回</string>
+    <string name="scan_hint">← → 切台  ↑ ↓ 音量  OK 频道列表  MENU 扫描  0 设置</string>
+    <string name="list_hint">OK 播放  ← 返回</string>
     <string name="no_channels_hint">暂无频道</string>
-    <string name="server_hint">按菜单键→确定开始扫描</string>
+    <string name="server_hint">按菜单键→扫描，或先按 0 配置服务器</string>
     <string name="buffering">缓冲中…</string>
     <string name="scanning">正在扫描…</string>
     <string name="scan_complete">扫描完成</string>
     <string name="play_error">播放失败，切换下一台</string>
     <string name="safe_mode">安全模式启动</string>
     <string name="channels_found">已找到 %d 个频道</string>
+    <!-- Settings -->
+    <string name="settings_title">服务器设置</string>
+    <string name="settings_server_label">后端服务器地址（运行 iptv-scanner-pro 的机器）</string>
+    <string name="settings_host_hint">例如 192.168.1.160</string>
+    <string name="settings_port_hint">端口</string>
+    <string name="settings_test">测试连接</string>
+    <string name="settings_save">保存并返回</string>
+    <string name="settings_hint">按数字键 0 随时打开此设置界面</string>
+    <string name="settings_not_configured">⚠️ 未配置服务器 — 按 0 进入设置</string>
 </resources>
