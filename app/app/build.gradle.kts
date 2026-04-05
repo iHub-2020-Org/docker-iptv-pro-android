@@ -1,22 +1,22 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    id("com.android.application") version "8.1.4"
+    id("org.jetbrains.kotlin.android") version "1.9.22"
 }
 
 android {
     namespace = "com.iptvpro.tv"
-    compileSdk = 34  // Always compile against latest SDK
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.iptvpro.tv"
-        minSdk = 19
-        targetSdk = 28  // Target TV-compatible API
+        minSdk = 21          // AGP 8.x 最低支持 API 21 (Android 5.0)
+        targetSdk = 28       // 保持 TV 兼容性
         versionCode = 1
         versionName = "1.0.0"
 
-        // Inject BASE_URL from build environment (env var or local.properties)
-        val baseUrl = System.getenv("IPTV_BASE_URL") 
-            ?: project.findProperty("IPTV_BASE_URL") as String?
+        // Inject BASE_URL at build time via env var, local.properties, or fallback
+        val baseUrl = System.getenv("IPTV_BASE_URL")
+            ?: (project.findProperty("IPTV_BASE_URL") as String?)
             ?: "http://192.168.9.158:5950"
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
 
@@ -33,7 +33,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Use debug signing for CI if no keystore provided
+            // Auto debug-sign for CI; replace with real keystore for production
             signingConfig = signingConfigs.getByName("debug")
         }
         debug {
@@ -51,13 +51,11 @@ android {
     }
 
     buildFeatures {
-        buildConfig = true   // Enable BuildConfig generation
+        buildConfig = true
         viewBinding = false
         compose = false
     }
 }
 
-// 零第三方依赖 - 纯系统API
-dependencies {
-    // Empty - using Android system APIs only
-}
+// Zero third-party dependencies - pure Android system APIs
+dependencies {}

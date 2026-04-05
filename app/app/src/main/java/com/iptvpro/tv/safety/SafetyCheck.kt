@@ -7,7 +7,7 @@ import android.util.Log
 object SafetyCheck {
     private const val TAG = "SafetyCheck"
     private const val MIN_FREE_MEMORY_MB = 50
-    private const val MIN_SDK_VERSION = Build.VERSION_CODES.KITKAT
+    private const val MIN_SDK_VERSION = Build.VERSION_CODES.LOLLIPOP
 
     // Use the same prefs name as CrashHandler for consistency
     internal const val PREFS_NAME = "safety_prefs"
