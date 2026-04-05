@@ -1,42 +1,28 @@
-# ProGuard rules for IPTV Pro Android
+# ─── IPTV Pro Android – ProGuard Rules ───────────────────────────────────
 
-# Keep entry points
+# Keep app entry points (AGP 8.x handles Activity/Application automatically,
+# but explicit rules prevent stripping of specific methods called via reflection)
 -keep public class com.iptvpro.tv.MainActivity {
     public void onCreate(android.os.Bundle);
     public boolean onKeyDown(int, android.view.KeyEvent);
 }
-
 -keep public class com.iptvpro.tv.SafeApplication {
     public void onCreate();
 }
 
-# Keep data models
+# Keep all data models (JSON serialization / deserialization via reflection)
 -keep class com.iptvpro.tv.data.model.** { *; }
+
+# Keep Config, cache, api, player, safety (accessed dynamically)
 -keep class com.iptvpro.tv.data.Config { *; }
 -keep class com.iptvpro.tv.data.cache.PlayListCache { *; }
 -keep class com.iptvpro.tv.data.api.** { *; }
 -keep class com.iptvpro.tv.player.** { *; }
 -keep class com.iptvpro.tv.safety.** { *; }
 
-# Kotlin metadata
--keepattributes *Annotation*
--keepattributes Signature
--keepattributes Exceptions
--keepattributes InnerClasses
--keepattributes EnclosingMethod
+# Kotlin metadata (needed for reflection and coroutines-compatible libs)
+-keepattributes *Annotation*, Signature, Exceptions, InnerClasses, EnclosingMethod
 
-# Android
--keep public class * extends android.app.Activity
--keep public class * extends android.app.Application
-
-# No warnings
+# Suppress expected warnings from Kotlin stdlib internals
 -dontwarn kotlin.**
 -dontwarn org.jetbrains.**
-
-# Optimization
--optimizationpasses 5
--dontusemixedcaseclassnames
--dontskipnonpubliclibraryclasses
--dontpreverify
--verbose
--optimizations !code/simplification/arithmetic,!field/*,!class/merging/*

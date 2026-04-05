@@ -1,6 +1,5 @@
 package com.iptvpro.tv.safety
 
-import android.app.ActivityManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Process

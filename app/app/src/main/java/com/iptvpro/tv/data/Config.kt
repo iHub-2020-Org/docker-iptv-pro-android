@@ -13,8 +13,6 @@ object Config {
         const val SCAN_EXECUTE = "/api/scan/execute"
         const val SCAN_STOP = "/api/scan/stop"
         const val RESULTS = "/api/results"
-        const val PLAYLIST_LIST = "/api/playlist/list"
-        const val PLAYLIST_LOAD = "/api/playlist/load"
         const val PROXY_STREAM = "/api/proxy/stream"
     }
     

@@ -3,7 +3,6 @@ package com.iptvpro.tv.data.api
 import android.os.Handler
 import android.os.Looper
 import com.iptvpro.tv.data.Config
-import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
