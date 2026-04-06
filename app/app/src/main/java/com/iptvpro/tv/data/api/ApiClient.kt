@@ -8,58 +8,37 @@ import java.net.URL
 
 object ApiClient {
     private const val CONNECT_TIMEOUT = 5000
-    private const val READ_TIMEOUT = 10000
-    
-    fun getSync(path: String): String? {
-        var conn: HttpURLConnection? = null
-        return try {
-            val url = URL(Config.BASE_URL + path)
-            conn = url.openConnection() as HttpURLConnection
-            conn.apply {
-                connectTimeout = CONNECT_TIMEOUT
-                readTimeout = READ_TIMEOUT
-                requestMethod = "GET"
-                setRequestProperty("Accept", "application/json")
-            }
-            if (conn.responseCode == HttpURLConnection.HTTP_OK) {
-                conn.inputStream.bufferedReader().use { it.readText() }
-            } else null
-        } catch (e: Exception) {
-            null
-        } finally {
-            conn?.disconnect()
-        }
-    }
-    
+    private const val READ_TIMEOUT    = 10000
+
+    fun getSync(path: String): String? = request("GET", Config.BASE_URL + path, null)
+
     fun postAsync(path: String, body: String, callback: (String?) -> Unit) {
         Thread {
-            val result = postSync(path, body)
+            val result = request("POST", Config.BASE_URL + path, body)
             Handler(Looper.getMainLooper()).post { callback(result) }
         }.start()
     }
-    
-    private fun postSync(path: String, body: String): String? {
+
+    private fun request(method: String, fullUrl: String, body: String?): String? {
         var conn: HttpURLConnection? = null
         return try {
-            val url = URL(Config.BASE_URL + path)
-            conn = url.openConnection() as HttpURLConnection
-            conn.apply {
+            conn = (URL(fullUrl).openConnection() as HttpURLConnection).apply {
                 connectTimeout = CONNECT_TIMEOUT
-                readTimeout = READ_TIMEOUT
-                requestMethod = "POST"
-                doOutput = true
-                setRequestProperty("Content-Type", "application/json")
+                readTimeout    = READ_TIMEOUT
+                requestMethod  = method
+                if (body != null) {
+                    doOutput = true
+                    setRequestProperty("Content-Type", "application/json")
+                    outputStream.use { it.write(body.toByteArray()) }
+                }
+                setRequestProperty("Accept", "application/json")
             }
-            conn.outputStream.use { it.write(body.toByteArray()) }
-            if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+            if (conn.responseCode in 200..299)
                 conn.inputStream.bufferedReader().use { it.readText() }
-            } else null
-        } catch (e: Exception) {
-            null
-        } finally {
-            conn?.disconnect()
-        }
+            else null
+        } catch (e: Exception) { null }
+        finally { conn?.disconnect() }
     }
-    
+
     fun isServerAvailable(): Boolean = getSync(Config.Endpoints.HEALTH) != null
 }
