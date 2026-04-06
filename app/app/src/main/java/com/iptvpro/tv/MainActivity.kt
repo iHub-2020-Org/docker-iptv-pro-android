@@ -183,7 +183,11 @@ class MainActivity : Activity(), SurfaceHolder.Callback {
         } catch (e: Exception) {
             Log.w(TAG, "Playlist load: ${e.message}")
             mainHandler.post {
-                if (channels.isEmpty()) showNoChannels("无法连接服务器 — 按0检查设置")
+                if (channels.isEmpty()) {
+                    showNoChannels("无法连接服务器 — 正在打开设置…")
+                    // Auto-open Settings when server is unreachable and no cached data
+                    mainHandler.postDelayed({ openSettings() }, 2000)
+                }
             }
         }
     }

@@ -119,11 +119,11 @@ class SettingsActivity : Activity() {
                 if (ok) {
                     tvStatus.text = "✅ 连接成功！服务器正常运行"
                     tvStatus.setTextColor(0xFF3FB950.toInt())
+                    // Keep the new URL since test passed
                 } else {
                     tvStatus.text = "❌ 无法连接 — 请检查IP、端口和网络"
                     tvStatus.setTextColor(0xFFFF6B6B.toInt())
-                    // Restore original
-                    Config.saveBaseUrl(this, savedUrl)
+                    Config.saveBaseUrl(this, savedUrl) // Restore on failure
                 }
             }
         }.start()
